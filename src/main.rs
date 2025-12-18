@@ -1,21 +1,38 @@
-use std::env;
-use std::process::Command;
+use std::io; // Voor input/output
+use rand::Rng; // Voor het genereren van getallen
+use std::cmp::Ordering; // Voor het vergelijken van getallen
 
 fn main() {
-    // Haal de gebruikersnaam op uit de omgevingsvariabelen
-    let user = env::var("USER").unwrap_or_else(|_| String::from("onbekende gebruiker"));
+    println!("--- Raad het getal! ---");
 
-    // Voer het Linux 'uptime' commando uit
-    let uptime = Command::new("uptime")
-        .arg("-p")
-        .output()
-        .expect("Kon uptime niet ophalen");
+    // Genereer een getal tussen 1 en 100
+    let geheim_getal = rand::thread_rng().gen_range(1..=100);
 
-    let uptime_str = String::from_utf8_lossy(&uptime.stdout);
+    loop {
+        println!("Type je gok:");
 
-    println!("---------------------------------------");
-    println!("Hallo, {}!", user);
-    println!("Je Arch WSL systeem is: {}", uptime_str.trim());
-    println!("Geprogrammeerd in Neovim!");
-    println!("---------------------------------------");
+        let mut gok = String::new();
+
+        io::stdin()
+            .read_line(&mut gok)
+            .expect("Kon regel niet lezen");
+
+        // Zet de tekst om naar een getal, negeer fouten (letters)
+        let gok: u32 = match gok.trim().parse() {
+            Ok(num) => num,
+            Err(_) => continue,
+        };
+
+        println!("Je gokte: {}", gok);
+
+        // Vergelijk de gok met het geheime getal
+        match gok.cmp(&geheim_getal) {
+            Ordering::Less => println!("Te laag!"),
+            Ordering::Greater => println!("Te hoog!"),
+            Ordering::Equal => {
+                println!("GEWONNEN! Goed gedaan.");
+                break; // Stop de loop
+            }
+        }
+    }
 }
